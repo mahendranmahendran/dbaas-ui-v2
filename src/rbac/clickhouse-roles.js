@@ -1,0 +1,67 @@
+// ClickHouse role definitions and SQL commands
+export const CLICKHOUSE_ROLES = {
+  PRODUCT_OWNER: 'product_owner',
+  PRODUCT_DEVELOPER: 'product_developer',
+  CLIENT_ACCOUNT_OWNER: 'client_account_owner',
+  CLIENT_ADMIN: 'client_admin',
+  CLIENT_ANALYST: 'client_analyst',
+  CLIENT_USER: 'client_user'
+};
+
+// SQL commands for role creation and permission grants
+export const createRoleSQL = {
+  [CLICKHOUSE_ROLES.PRODUCT_OWNER]: `
+    CREATE ROLE IF NOT EXISTS product_owner;
+    GRANT ALL ON * TO product_owner;
+  `,
+  [CLICKHOUSE_ROLES.PRODUCT_DEVELOPER]: `
+    CREATE ROLE IF NOT EXISTS product_developer;
+    GRANT ALL ON * TO product_developer;
+  `,
+  [CLICKHOUSE_ROLES.CLIENT_ACCOUNT_OWNER]: `
+    CREATE ROLE IF NOT EXISTS client_account_owner;
+    GRANT INSERT, UPDATE, SELECT, DELETE, CREATE, DROP, ALTER ON {database}.* TO client_account_owner;
+    GRANT SHOW TABLES, SHOW COLUMNS, SHOW DICTIONARIES ON {database}.* TO client_account_owner;
+  `,
+  [CLICKHOUSE_ROLES.CLIENT_ADMIN]: `
+    CREATE ROLE IF NOT EXISTS client_admin;
+    GRANT INSERT, UPDATE, SELECT, DELETE ON {database}.* TO client_admin;
+    GRANT SHOW TABLES, SHOW COLUMNS ON {database}.* TO client_admin;
+  `,
+  [CLICKHOUSE_ROLES.CLIENT_ANALYST]: `
+    CREATE ROLE IF NOT EXISTS client_analyst;
+    GRANT INSERT, UPDATE, SELECT, DELETE ON {database}.* TO client_analyst;
+    GRANT SHOW TABLES, SHOW COLUMNS ON {database}.* TO client_analyst;
+  `,
+  [CLICKHOUSE_ROLES.CLIENT_USER]: `
+    CREATE ROLE IF NOT EXISTS client_user;
+    GRANT SELECT ON {database}.* TO client_user;
+    GRANT SHOW TABLES, SHOW COLUMNS ON {database}.* TO client_user;
+  `
+};
+
+// Page access mapping to ClickHouse roles with updated client access
+export const PAGE_ACCESS = {
+  landing: [CLICKHOUSE_ROLES.PRODUCT_OWNER, CLICKHOUSE_ROLES.PRODUCT_DEVELOPER, CLICKHOUSE_ROLES.CLIENT_ACCOUNT_OWNER, CLICKHOUSE_ROLES.CLIENT_ADMIN],
+  order: [CLICKHOUSE_ROLES.PRODUCT_OWNER, CLICKHOUSE_ROLES.PRODUCT_DEVELOPER, CLICKHOUSE_ROLES.CLIENT_ACCOUNT_OWNER, CLICKHOUSE_ROLES.CLIENT_ADMIN],
+  billing: [CLICKHOUSE_ROLES.PRODUCT_OWNER, CLICKHOUSE_ROLES.PRODUCT_DEVELOPER, CLICKHOUSE_ROLES.CLIENT_ACCOUNT_OWNER, CLICKHOUSE_ROLES.CLIENT_ADMIN],
+  createUser: [CLICKHOUSE_ROLES.PRODUCT_OWNER, CLICKHOUSE_ROLES.PRODUCT_DEVELOPER, CLICKHOUSE_ROLES.CLIENT_ACCOUNT_OWNER],
+  profile: [CLICKHOUSE_ROLES.PRODUCT_OWNER, CLICKHOUSE_ROLES.PRODUCT_DEVELOPER, CLICKHOUSE_ROLES.CLIENT_ACCOUNT_OWNER],
+  monitoring: [CLICKHOUSE_ROLES.PRODUCT_OWNER, CLICKHOUSE_ROLES.PRODUCT_DEVELOPER],
+  settings: [CLICKHOUSE_ROLES.PRODUCT_OWNER, CLICKHOUSE_ROLES.PRODUCT_DEVELOPER, CLICKHOUSE_ROLES.CLIENT_ACCOUNT_OWNER],
+  sqlPlayground: [
+    CLICKHOUSE_ROLES.PRODUCT_OWNER,
+    CLICKHOUSE_ROLES.PRODUCT_DEVELOPER,
+    CLICKHOUSE_ROLES.CLIENT_ACCOUNT_OWNER,
+    CLICKHOUSE_ROLES.CLIENT_ADMIN,
+    CLICKHOUSE_ROLES.CLIENT_ANALYST
+  ]
+};
+
+// Row-level security policies
+export const createRowPolicies = (database, tenantId) => `
+  ALTER TABLE ${database}.* 
+  ADD ROW POLICY tenant_isolation ON SELECT, INSERT, UPDATE, DELETE 
+  FOR ALL SETTINGS tenant_id = '${tenantId}'
+  TO client_account_owner, client_admin, client_analyst, client_user;
+`;
