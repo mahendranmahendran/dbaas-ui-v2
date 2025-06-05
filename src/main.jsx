@@ -2,9 +2,10 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import ErrorBoundary from './components/ErrorBoundary';
 import { ThemeProvider, CssBaseline } from '@mui/material';
 import { ColorModeContext, useMode } from './styles/theme';
-import { AuthProvider } from './utils/hooks/useAuth';
+import { AuthProvider } from './utils/hooks/useAuth-new';
 import App from './App';
 import LandingPage from './pages/LandingPage';
 import PricingPage from './pages/PricingPage';
@@ -23,13 +24,13 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: (
-      <AuthProvider>
-        {({ user }) => (
-          <RBACProvider user={user}>
+      <ErrorBoundary>
+        <AuthProvider>
+          <RBACProvider>
             <App />
           </RBACProvider>
-        )}
-      </AuthProvider>
+        </AuthProvider>
+      </ErrorBoundary>
     ),
     errorElement: <ErrorPage />,
     children: [

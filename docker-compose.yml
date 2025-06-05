@@ -9,6 +9,7 @@ services:
     volumes:
       - clickhouse-data:/var/lib/clickhouse
       - ./config/clickhouse:/etc/clickhouse-server/conf.d
+      - ./config/clickhouse/cors.xml:/etc/clickhouse-server/config.d/cors.xml
     environment:
       - CLICKHOUSE_USER=admin
       - CLICKHOUSE_PASSWORD=admin_password

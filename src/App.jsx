@@ -8,7 +8,7 @@ import { tokens } from './styles/theme';
 import { Box, AppBar, Toolbar, Button } from '@mui/material';
 import ThemeToggler from './components/ThemeToggler';
 import { useEffect } from 'react';
-import { useAuth } from './utils/hooks/useAuth.jsx';
+import { useAuth } from './utils/hooks/useAuth-new.jsx';
 
 export default function App() {
   const theme = useTheme();

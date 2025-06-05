@@ -1,0 +1,11 @@
+<yandex>
+    <http_server>
+        <cors>
+            <allow_origins>*</allow_origins>
+            <allow_methods>GET,POST,OPTIONS</allow_methods>
+            <allow_headers>Origin, X-Requested-With, Content-Type, Accept, Authorization</allow_headers>
+            <expose_headers>X-ClickHouse-Server-Display-Name</expose_headers>
+            <max_age>3600</max_age>
+        </cors>
+    </http_server>
+</yandex>

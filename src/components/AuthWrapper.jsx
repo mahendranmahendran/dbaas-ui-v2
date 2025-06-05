@@ -1,9 +1,10 @@
 // components/AuthWrapper.jsx
-import { useAuth } from '../utils/hooks/useAuth';
+import { useAuth } from '../utils/hooks/useAuth-new';
 import { Navigate, useLocation } from 'react-router-dom';
 
 export default function AuthWrapper({ children }) {
-  const { isAuthenticated } = useAuth();
+  const { user } = useAuth();
+  const isAuthenticated = !!user;
   const location = useLocation();
   
   if (!isAuthenticated) {

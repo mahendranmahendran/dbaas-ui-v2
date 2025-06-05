@@ -1,9 +1,12 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { createClickhouseConnection } from '../utils/clickhouse';
+import { createClickhouseConnection } from '../utils/clickhouse-browser';
 
 const RBACContext = createContext();
 
-export function RBACProvider({ children, user }) {
+import { useAuth } from '../utils/hooks/useAuth-new';
+
+export function RBACProvider({ children }) {
+  const { user } = useAuth();
   const [permissions, setPermissions] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -41,15 +44,27 @@ export function RBACProvider({ children, user }) {
     fetchPermissions();
   }, [user]);
 
-  const checkAccess = async (resource) => {
+  const checkAccess = async (database, resource, action) => {
     if (!user || !permissions) return false;
 
     try {
-      const client = await createClickhouseConnection(user.username, user.password);
+      const client = await createClickhouseConnection(
+        user.username, 
+        user.password, 
+        database
+      );
+      
       const { data } = await client.query({
-        query: `CHECK ACCESS TO ${resource}`
+        query: `
+          SELECT count() > 0 as has_access
+          FROM system.grants 
+          WHERE access_type = '${action}' 
+          AND database = '${database}'
+          AND table = '${resource}'
+        `
       });
-      return data[0].result === 1;
+      
+      return data[0]?.has_access || false;
     } catch (err) {
       console.error('Failed to check access:', err);
       return false;
@@ -61,7 +76,9 @@ export function RBACProvider({ children, user }) {
     loading,
     error,
     checkAccess,
-    currentRole: permissions?.currentRole
+    currentRole: permissions?.currentRole,
+    isLoading: loading,
+    hasError: !!error
   };
 
   return (

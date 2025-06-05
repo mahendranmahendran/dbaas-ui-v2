@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { createClickhouseConnection, getCurrentRole, getCurrentUserGrants } from '../clickhouse';
+import { createClickhouseConnection } from '../clickhouse-browser';
 
 const AuthContext = createContext();
 
@@ -31,8 +31,11 @@ export function AuthProvider({ children }) {
       );
 
       // Verify connection and get role information
-      const role = await getCurrentRole(client);
-      const grants = await getCurrentUserGrants(client);
+      const { data: roleData } = await client.query('SELECT currentRole() as role');
+      const { data: grantsData } = await client.query('SHOW GRANTS FOR CURRENT_USER');
+      
+      const role = roleData[0]?.role;
+      const grants = grantsData;
 
       const userData = {
         username: credentials.username,
@@ -72,7 +75,7 @@ export function AuthProvider({ children }) {
 
   return (
     <AuthContext.Provider value={{ user, login, logout }}>
-      {children}
+      {typeof children === 'function' ? children({ user }) : children}
     </AuthContext.Provider>
   );
 }
