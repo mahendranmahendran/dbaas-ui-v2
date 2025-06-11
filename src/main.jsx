@@ -16,8 +16,8 @@ import ErrorPage from './pages/ErrorPage/index';
 import AuthWrapper from './components/AuthWrapper';
 import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
-import { RBACProvider } from './rbac/context-new.jsx';
-import { Protected } from './rbac/components-new.jsx';
+import { RBACProvider } from './rbac/context';
+import { Protected } from './rbac/components';
 import AdminPortal from './pages/admin/AdminPortal.jsx';
 
 const router = createBrowserRouter([

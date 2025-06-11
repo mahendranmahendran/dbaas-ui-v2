@@ -2,7 +2,7 @@
 import { useTheme } from '@mui/material/styles';
 import { tokens } from '../../styles/theme';
 import { Box, Grid } from '@mui/material';
-import { usePermission } from '../../rbac/context.jsx';
+import { usePermission } from '../../rbac/context';
 import PlanSummary from './PlanSummary';
 import PaymentMethod from './PaymentMethod';
 

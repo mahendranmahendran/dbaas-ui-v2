@@ -2,50 +2,138 @@
 import { useTheme } from '@mui/material/styles';
 import { tokens } from '../../styles/theme';
 import { useRBAC } from '../../utils/hooks/useRBAC-new';
-import { Navigate } from 'react-router-dom';
-import { Box, Typography } from '@mui/material';
+import { useAuth } from '../../utils/hooks/useAuth-new';
+import { Navigate, useLocation } from 'react-router-dom';
+import { Box, Typography, Button, CircularProgress } from '@mui/material';
+import { useEffect, useState, useCallback } from 'react';
 
 export default function RBACWrapper({ 
   children, 
   page,
-  database,
-  table,
-  action
+  resource,
+  action,
+  fallback,
+  requireAll = true,
+  showError = true
 }) {
-  const { hasPageAccess, hasClickHousePermission } = useRBAC();
+  const location = useLocation();
+  const { user } = useAuth();
+  const { 
+    hasPageAccess, 
+    checkPermission, 
+    checkMultiplePermissions,
+    getCurrentRole 
+  } = useRBAC();
+  
   const theme = useTheme();
   const colors = tokens(theme.palette.mode);
   
-  const [hasAccess, setHasAccess] = React.useState(false);
-  
-  React.useEffect(() => {
-    const checkPermissions = async () => {
-      const pageAccess = page ? hasPageAccess(page) : true;
-      const dbAccess = database && table && action ? 
-        await hasClickHousePermission(database, table, action) : true;
-      
-      setHasAccess(pageAccess && dbAccess);
-    };
-    
-    checkPermissions();
-  }, [page, database, table, action]);
+  const [loading, setLoading] = useState(true);
+  const [hasAccess, setHasAccess] = useState(false);
+  const [error, setError] = useState(null);
+
+  const checkAccess = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Check page access first
+      if (page && !hasPageAccess(page)) {
+        setHasAccess(false);
+        return;
+      }
+
+      // Handle multiple resource-action pairs
+      if (Array.isArray(resource) && Array.isArray(action)) {
+        if (resource.length !== action.length) {
+          throw new Error('Resource and action arrays must have the same length');
+        }
+
+        const checks = resource.map((res, index) => ({
+          resource: res,
+          action: action[index]
+        }));
+
+        const hasPermission = await checkMultiplePermissions(checks, requireAll);
+        setHasAccess(hasPermission);
+        return;
+      }
+
+      // Handle single resource-action pair
+      if (resource && action) {
+        const hasPermission = await checkPermission(resource, action);
+        setHasAccess(hasPermission);
+        return;
+      }
+
+      // If no specific permissions needed, just check page access
+      setHasAccess(true);
+    } catch (err) {
+      console.error('Permission check failed:', err);
+      setError(err.message);
+      setHasAccess(false);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, resource, action, requireAll, hasPageAccess, checkPermission, checkMultiplePermissions]);
+
+  useEffect(() => {
+    checkAccess();
+  }, [checkAccess]);
+
+  if (loading) {
+    return (
+      <Box 
+        display="flex" 
+        justifyContent="center" 
+        alignItems="center" 
+        minHeight="200px"
+      >
+        <CircularProgress />
+      </Box>
+    );
+  }
 
   if (!hasAccess) {
+    if (fallback) {
+      return fallback;
+    }
+
+    if (!showError) {
+      return null;
+    }
+
     return (
-      <Box sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: 'calc(100vh - 64px)',
-        backgroundColor: colors.primary[400]
-      }}>
-        <Typography variant="h4" sx={{ color: colors.grey[100], mb: 2 }}>
-          Unauthorized Access
+      <Box
+        display="flex"
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        p={4}
+        gap={2}
+        textAlign="center"
+      >
+        <Typography variant="h4" color="error" gutterBottom>
+          Access Denied
         </Typography>
-        <Typography sx={{ color: colors.grey[300] }}>
-          You don't have permission to view this page
+        
+        <Typography color="textSecondary">
+          {error || `You don't have the required permissions for this action.`}
         </Typography>
+        
+        <Typography variant="body2" color="textSecondary" gutterBottom>
+          Current Role: {getCurrentRole()}
+        </Typography>
+        
+        {location.pathname !== '/' && (
+          <Button
+            variant="contained"
+            color="primary"
+            onClick={() => window.history.back()}
+          >
+            Go Back
+          </Button>
+        )}
       </Box>
     );
   }

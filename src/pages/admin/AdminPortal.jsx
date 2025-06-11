@@ -1,7 +1,7 @@
-import { useAuth } from '../../utils/hooks/useAuth.jsx';
-import { Protected } from '../../rbac/components.jsx';
-import { UserSection, DatabaseSection } from './AdminComponents.jsx';
-import { RESOURCES, ACTIONS } from '../../rbac/access.jsx';
+import { useAuth } from '../../utils/hooks/useAuth-new';
+import { Protected } from '../../rbac/components';
+import { UserSection, DatabaseSection } from './AdminComponents';
+import { RESOURCES, ACTIONS } from '../../rbac/access';
 
 export default function AdminPortal() {
   const { user } = useAuth();

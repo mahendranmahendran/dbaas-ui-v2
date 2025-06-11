@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { usePermission, useRBAC } from '../../rbac/context.jsx';
-import { useAuth } from '../../utils/hooks/useAuth.jsx';
-import { RESOURCES, ACTIONS } from '../../rbac/access.jsx';
+import { usePermission, useRBAC } from '../../rbac/context';
+import { useAuth } from '../../utils/hooks/useAuth-new';
+import { RESOURCES, ACTIONS } from '../../rbac/access';
 
 // User Management Section
 export function UserSection() {

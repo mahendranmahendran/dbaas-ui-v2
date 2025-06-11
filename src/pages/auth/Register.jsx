@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTheme } from '@mui/material/styles';
 import { tokens } from '../../styles/theme';
-import { useAuth } from '../../utils/hooks/useAuth';
+import { useAuth } from '../../utils/hooks/useAuth-new';
 import { Box, Button, TextField, Typography } from '@mui/material';
 
 export default function Register() {

@@ -2,7 +2,7 @@
 import { useTheme } from '@mui/material/styles';
 import { tokens } from '../../styles/theme';
 import { Box } from '@mui/material';
-import { usePermission } from '../../rbac/context.jsx';
+import { usePermission } from '../../rbac/context';
 import QueryEditor from './QueryEditor';
 import ResultsViewer from './ResultsViewer';
 import SaveQueryButton from './SaveQueryButton';
